@@ -1,0 +1,7 @@
+tensorflow
+statsmodels
+scikit-learn
+keras-tuner
+seaborn
+matplotlib
+pandas[performance]

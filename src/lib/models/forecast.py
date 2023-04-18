@@ -1,22 +1,44 @@
 import keras
+from . import PollutionNet, DirectRnn
 
 
-class PollutionRnn(keras.layers.Layer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.input_days = 7
-        self.output_days = 1 / 24
-        self.output_hours = 1
-        self.offset_hours = int(24 * self.input_days) - 1
-        self.shift_hours = 1
-        self.input_spec = keras.layers.InputSpec(shape=(None, int(self.input_days * 24), 8))
-        self.lstm = keras.layers.LSTM(512, return_sequences=False)
-        self.fc = keras.layers.Dense(16, activation="relu")
-        self.out = keras.layers.Dense(self.output_hours * 3)
-        self.reshape = keras.layers.Reshape((self.output_hours, 3))
+# class SimpleRnn(PollutionNet, keras.Sequential):
+#     def __init__(self, n_features, n_targets, layer_class, n_recursive_units, input_days, output_days, offset_hours):
+#         super().__init__(n_features, n_targets, input_days, output_days, offset_hours)
+#         if offset_hours is None:
+#             self.offset_hours = self.input_hours - self.output_hours
+#         self.lstm = layer_class(n_recursive_units, return_sequences=True)
+#         self.add(self.lstm)
+#         self.cropping = keras.layers.Cropping1D((self.offset_hours, 0))
+#         self.add(self.cropping)
+#         self.out = keras.layers.Dense(n_targets)
+#         self.add(self.out)
 
-    def call(self, inputs, *args, **kwargs):
-        x = self.lstm(inputs, *args, **kwargs)
-        x = self.fc(x, *args, **kwargs)
-        x = self.out(x, *args, **kwargs)
-        return self.reshape(x)
+
+# class SimplePollutionLSTM(SimpleRnn):
+#     def __init__(self, n_features, n_targets, n_recursive_units, input_days, output_days, offset_hours):
+#         super().__init__(n_features, n_targets, keras.layers.LSTM, n_recursive_units, input_days, output_days, offset_hours)
+
+
+# class SimplePollutionGRU(SimpleRnn):
+#     def __init__(self, n_features, n_targets, n_recursive_units, input_days, output_days, offset_hours):
+#         super().__init__(n_features, n_targets, keras.layers.GRU, n_recursive_units, input_days, output_days, offset_hours)
+
+class DirectLSTM(DirectRnn):
+    def __init__(self, n_features, n_targets, n_recursive_units, input_days, output_days, offset_hours=None, n_intermediate_fc_units=[], *args, **kwargs):
+        super().__init__(n_features, n_targets, keras.layers.LSTM, n_recursive_units, input_days, output_days, offset_hours, n_intermediate_fc_units, *args, **kwargs)
+
+
+class DirectGRU(DirectRnn):
+    def __init__(self, n_features, n_targets, n_recursive_units, input_days, output_days, offset_hours=None, n_intermediate_fc_units=[], *args, **kwargs):
+        super().__init__(n_features, n_targets, keras.layers.GRU, n_recursive_units, input_days, output_days, offset_hours, n_intermediate_fc_units, *args, **kwargs)
+
+
+class MultiHeadRnn(PollutionNet):
+    def __init__(self, n_features, n_targets, layer_class, n_backbone_units, n_head_units, input_days, output_days, offset_hours):
+        super().__init__(n_features, input_days, output_days, offset_hours)
+        if offset_hours is None:
+            self.offset_hours = self.input_hours - 1
+        self.backbone = layer_class(n_backbone_units, return_sequences=True)
+        for head in range(n_targets):
+            pass
