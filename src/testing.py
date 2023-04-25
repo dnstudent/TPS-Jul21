@@ -1,17 +1,12 @@
-# %%
 from keras.regularizers import l2
 from lib.data.utils import train_data, targets, features, split_dataframe
-# from lib.data.plot import plot_predictions
 from lib.models.estimators import PollutionEstimator
 from lib.models.on_the_fly import OnTheFlyLSTM
-# from lib.models import DirectRnn
-# from statsmodels.tsa.deterministic import DeterministicProcess, CalendarFourier
 
 
 import tensorflow as tf
 import keras
 from keras.callbacks import TensorBoard as TB, EarlyStopping as ES  # , ReduceLROnPlateau as RLRP
-# from keras.optimizers import Adam, SGD
 import keras_tuner as kt
 import seaborn as sns
 sns.set_theme("notebook", style="whitegrid", rc={"figure.dpi": 100})
@@ -19,15 +14,7 @@ sns.set_theme("notebook", style="whitegrid", rc={"figure.dpi": 100})
 data_dir = "../data/"
 
 df = train_data(data_dir, delta=False)
-# in_day_features = CalendarFourier("D", 8)
-# time_features = DeterministicProcess(
-#     df.to_period("H").index,
-#     constant=False,
-#     additional_terms=[in_day_features],
-#     drop=True
-# ).in_sample().to_timestamp()
 
-# df = df.join(time_features, how="left")
 all_features = features  # + time_features.columns.to_list()
 
 train_df, valid_df = split_dataframe(df, 0.2, 0.0)
