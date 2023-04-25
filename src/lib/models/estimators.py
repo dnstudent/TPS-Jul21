@@ -68,7 +68,7 @@ class PollutionEstimator(keras.Sequential):
         """
         self.features_normalization.reset_state()
         self.targets_reconstruction.reset_state()
-        if isinstance(training_data, list) or isinstance(training_data, tuple):
+        if isinstance(training_data, (list, tuple)):
             training_data = pd.concat(training_data)
         if type(training_data) is pd.DataFrame:
             self.features_normalization.adapt(
@@ -124,7 +124,7 @@ class PollutionEstimator(keras.Sequential):
         if isinstance(X, tf.data.Dataset):
             return super().fit(X, y, *args, **kwargs)
         try:
-            if isinstance(X, list) or isinstance(X, tuple):
+            if isinstance(X, (list, tuple)):
                 data = [pd.concat([xx, yy], axis=1) for xx, yy in zip(X, y)]
             else:
                 data = pd.concat([X, y], axis=1)
