@@ -1,7 +1,9 @@
 .idea/
 .vscode/
 .ipynb_checkpoints/
+.cache/
 .virtual_documents/
 __pycache__
+.DS_Store
 logs/*
 tuning/

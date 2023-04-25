@@ -11,7 +11,7 @@ class PollutionEstimator(keras.Sequential):
     """
 
     def __init__(self,
-                 features, targets, pollution_model, deltas, compilation_kwargs=None,
+                 features, targets, pollution_model, targets_normalization, compilation_kwargs=None,
                  *args, **kwargs):
         """Initializes a pollution model.
 
@@ -32,10 +32,9 @@ class PollutionEstimator(keras.Sequential):
         self.features = features
         self.targets = targets
         self.prediction_shift = self.dataset_maker.output_size
-        self.deltas = deltas
 
         # Features normalization layers: (batch_size, input_size, n_features) => (batch_size, input_size, n_features)
-        self.features_normalization = keras.layers.Normalization(axis=-1)
+        self.features_normalization = keras.layers.Normalization(axis=-1, name=f"{self.name}_features_normalization")
         self.add(self.features_normalization)
 
         # Pollution model: (batch_size, input_size, n_features) => (batch_size, ?, n_targets)
@@ -46,16 +45,22 @@ class PollutionEstimator(keras.Sequential):
 
         # Reshape: (batch_size, ?, n_targets) => (batch_size, output_size, n_targets)
         self.reshape = keras.layers.Reshape(
-            (self.dataset_maker.output_size, len(targets)))
+            (self.dataset_maker.output_size, len(targets)), name=f"{self.name}_reshape")
         self.add(self.reshape)
 
         # Targets reconstruction: (batch_size, output_size, n_targets) => (batch_size, output_size, n_targets)
         self.targets_reconstruction = keras.layers.Normalization(
-            axis=-1, invert=True)
+            axis=-1, invert=True, name=f"{self.name}_targets_reconstruction")
         self.add(self.targets_reconstruction)
 
         self.build(input_shape=(
             None, self.dataset_maker.input_size, len(features)))
+
+        if targets_normalization:
+            self.targets_normalization = keras.layers.Normalization(
+                axis=-1, name=f"{self.name}_targets_normalization")
+        else:
+            self.targets_normalization = None
 
     def adapt_training(self, training_data):
         """Adapts the normalization layers to the TRAINING data. One MUST assure that the data is already batched,
@@ -70,6 +75,9 @@ class PollutionEstimator(keras.Sequential):
                 training_data[self.features].to_numpy().reshape((1, -1, len(self.features))))
             self.targets_reconstruction.adapt(
                 training_data[self.targets].to_numpy().reshape((1, -1, len(self.targets))))
+            if self.targets_normalization:
+                self.targets_normalization.adapt(
+                    training_data[self.targets].to_numpy().reshape((1, -1, len(self.targets))))
         else:
             if len(training_data.element_spec[0].shape) != 3 or len(training_data.element_spec[1].shape) != 3:
                 raise ValueError(
@@ -79,6 +87,9 @@ class PollutionEstimator(keras.Sequential):
                 training_data.map(lambda x, _: x))
             self.targets_reconstruction.adapt(
                 training_data.map(lambda _, y: y))
+            if self.targets_normalization:
+                self.targets_normalization.adapt(
+                    training_data.map(lambda _, y: y))
 
     def trim_to_forecast(self, data):
         """Trims the data to the appropriate size for the model.
@@ -89,15 +100,23 @@ class PollutionEstimator(keras.Sequential):
             return data.iloc[:-rem]
         return data
 
-    def train(self, data: List[pd.DataFrame] | pd.DataFrame, epochs, shift_hours, validation_data=None, batch_size=32, **kwargs):
+    def train(self, data: List[pd.DataFrame] | pd.DataFrame, epochs, shift_hours, validation_data=None, batch_size=32, cache_to_disk=True, **kwargs):
         """Trains the model on a dataset, assuming the input is in my format.
         """
+        def cache_path(train):
+            if not cache_to_disk:
+                return None
+            import os
+            if not os.path.exists(".cache"):
+                os.mkdir(".cache")
+            return f".cache/{self.name}_{self.dataset_maker.input_size}_{'train' if train else 'validation'}"
+
         training_dataset = self.dataset_maker.supervised_dataset(
-            data, shift_hours).shuffle(10_000).batch(batch_size)
+            data, shift_hours).cache(cache_path(True)).shuffle(10_000).batch(batch_size)
         if validation_data is not None:
             validation_data = self.dataset_maker.supervised_dataset(
-                validation_data, self.dataset_maker.output_size).batch(batch_size)
-        return super().fit(training_dataset, validation_data=validation_data, epochs=epochs, **kwargs)
+                validation_data, self.dataset_maker.output_size).batch(batch_size).cache(cache_path(False))
+        return super().fit(training_dataset.prefetch(tf.data.AUTOTUNE), validation_data=validation_data.prefetch(tf.data.AUTOTUNE), epochs=epochs, **kwargs)
 
     def fit(self, X, y, *args, **kwargs):
         """Trains the model on a dataset, assuming the input is in keras/scikit format.

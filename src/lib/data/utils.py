@@ -88,7 +88,7 @@ def split_dataframe(data, validation_length, start, align_24h=True):
         start = int(len(data) * start)
         if align_24h:
             start -= (start % 24)
-    return [data.iloc[:start], data.iloc[start + validation_length:]], data.iloc[start:start + validation_length]
+    return [data.iloc[:start].copy(), data.iloc[start + validation_length:].copy()], data.iloc[start:start + validation_length].copy()
 
 
 def split_as_sklearn(data):

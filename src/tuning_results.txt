@@ -1,0 +1,284 @@
+Results summary
+Results in tuning/on_the_fly_lstm
+Showing 20 best trials
+Objective(name="val_loss", direction="min")
+
+Trial 0591 summary
+Hyperparameters:
+double_rnn: True
+input_days: 6
+n_units: 32
+learning_rate: 0.015574808053756576
+learning_algorithm: adam
+tuner/epochs: 167
+tuner/initial_epoch: 56
+tuner/bracket: 4
+tuner/round: 3
+tuner/trial_id: 0582
+Score: 489.55690511067706
+
+Trial 0427 summary
+Hyperparameters:
+double_rnn: True
+input_days: 6
+n_units: 8
+learning_rate: 0.01602714564325443
+learning_algorithm: adam
+tuner/epochs: 500
+tuner/initial_epoch: 167
+tuner/bracket: 5
+tuner/round: 5
+tuner/trial_id: 0423
+Score: 497.7008056640625
+
+Trial 0595 summary
+Hyperparameters:
+double_rnn: True
+input_days: 6
+n_units: 32
+learning_rate: 0.015574808053756576
+learning_algorithm: adam
+tuner/epochs: 500
+tuner/initial_epoch: 167
+tuner/bracket: 4
+tuner/round: 4
+tuner/trial_id: 0591
+Score: 503.87335205078125
+
+Trial 0582 summary
+Hyperparameters:
+double_rnn: True
+input_days: 6
+n_units: 32
+learning_rate: 0.015574808053756576
+learning_algorithm: adam
+tuner/epochs: 56
+tuner/initial_epoch: 19
+tuner/bracket: 4
+tuner/round: 2
+tuner/trial_id: 0556
+Score: 524.7959594726562
+
+Trial 0426 summary
+Hyperparameters:
+double_rnn: False
+input_days: 4
+n_units: 128
+learning_rate: 0.008229914721582743
+learning_algorithm: rmsprop
+tuner/epochs: 500
+tuner/initial_epoch: 167
+tuner/bracket: 5
+tuner/round: 5
+tuner/trial_id: 0422
+Score: 528.7664896647135
+
+Trial 0422 summary
+Hyperparameters:
+double_rnn: False
+input_days: 4
+n_units: 128
+learning_rate: 0.008229914721582743
+learning_algorithm: rmsprop
+tuner/epochs: 167
+tuner/initial_epoch: 56
+tuner/bracket: 5
+tuner/round: 4
+tuner/trial_id: 0411
+Score: 529.3082784016927
+
+Trial 0381 summary
+Hyperparameters:
+double_rnn: False
+input_days: 4
+n_units: 128
+learning_rate: 0.008229914721582743
+learning_algorithm: rmsprop
+tuner/epochs: 19
+tuner/initial_epoch: 7
+tuner/bracket: 5
+tuner/round: 2
+tuner/trial_id: 0302
+Score: 530.1272583007812
+
+Trial 0411 summary
+Hyperparameters:
+double_rnn: False
+input_days: 4
+n_units: 128
+learning_rate: 0.008229914721582743
+learning_algorithm: rmsprop
+tuner/epochs: 56
+tuner/initial_epoch: 19
+tuner/bracket: 5
+tuner/round: 3
+tuner/trial_id: 0381
+Score: 537.5128173828125
+
+Trial 0420 summary
+Hyperparameters:
+double_rnn: True
+input_days: 6
+n_units: 8
+learning_rate: 0.01602714564325443
+learning_algorithm: adam
+tuner/epochs: 56
+tuner/initial_epoch: 19
+tuner/bracket: 5
+tuner/round: 3
+tuner/trial_id: 0390
+Score: 548.9659932454427
+
+Trial 0593 summary
+Hyperparameters:
+double_rnn: True
+input_days: 7
+n_units: 128
+learning_rate: 0.0034840127226650184
+learning_algorithm: rmsprop
+tuner/epochs: 167
+tuner/initial_epoch: 56
+tuner/bracket: 4
+tuner/round: 3
+tuner/trial_id: 0579
+Score: 551.7339477539062
+
+Trial 0296 summary
+Hyperparameters:
+double_rnn: False
+input_days: 3
+n_units: 128
+learning_rate: 0.013756017450454641
+learning_algorithm: rmsprop
+tuner/epochs: 7
+tuner/initial_epoch: 3
+tuner/bracket: 5
+tuner/round: 1
+tuner/trial_id: 0251
+Score: 552.0142008463541
+
+Trial 0385 summary
+Hyperparameters:
+double_rnn: False
+input_days: 4
+n_units: 128
+learning_rate: 0.01985140846966833
+learning_algorithm: adam
+tuner/epochs: 19
+tuner/initial_epoch: 7
+tuner/bracket: 5
+tuner/round: 2
+tuner/trial_id: 0290
+Score: 565.347412109375
+
+Trial 0592 summary
+Hyperparameters:
+double_rnn: True
+input_days: 4
+n_units: 64
+learning_rate: 0.00497432701266601
+learning_algorithm: adam
+tuner/epochs: 167
+tuner/initial_epoch: 56
+tuner/bracket: 4
+tuner/round: 3
+tuner/trial_id: 0581
+Score: 569.7730916341146
+
+Trial 0696 summary
+Hyperparameters:
+double_rnn: False
+input_days: 3
+n_units: 32
+learning_rate: 0.01792231600984331
+learning_algorithm: rmsprop
+tuner/epochs: 500
+tuner/initial_epoch: 167
+tuner/bracket: 2
+tuner/round: 2
+tuner/trial_id: 0690
+Score: 570.0786743164062
+
+Trial 0690 summary
+Hyperparameters:
+double_rnn: False
+input_days: 3
+n_units: 32
+learning_rate: 0.01792231600984331
+learning_algorithm: rmsprop
+tuner/epochs: 167
+tuner/initial_epoch: 56
+tuner/bracket: 2
+tuner/round: 1
+tuner/trial_id: 0686
+Score: 575.5356038411459
+
+Trial 0423 summary
+Hyperparameters:
+double_rnn: True
+input_days: 6
+n_units: 8
+learning_rate: 0.01602714564325443
+learning_algorithm: adam
+tuner/epochs: 167
+tuner/initial_epoch: 56
+tuner/bracket: 5
+tuner/round: 4
+tuner/trial_id: 0420
+Score: 579.4068400065104
+
+Trial 0594 summary
+Hyperparameters:
+double_rnn: True
+input_days: 2
+n_units: 32
+learning_rate: 0.012027009051027637
+learning_algorithm: adam
+tuner/epochs: 167
+tuner/initial_epoch: 56
+tuner/bracket: 4
+tuner/round: 3
+tuner/trial_id: 0583
+Score: 587.483642578125
+
+Trial 0425 summary
+Hyperparameters:
+double_rnn: False
+input_days: 4
+n_units: 128
+learning_rate: 0.01985140846966833
+learning_algorithm: adam
+tuner/epochs: 167
+tuner/initial_epoch: 56
+tuner/bracket: 5
+tuner/round: 4
+tuner/trial_id: 0412
+Score: 588.4945475260416
+
+Trial 0417 summary
+Hyperparameters:
+double_rnn: False
+input_days: 3
+n_units: 128
+learning_rate: 0.013756017450454641
+learning_algorithm: rmsprop
+tuner/epochs: 56
+tuner/initial_epoch: 19
+tuner/bracket: 5
+tuner/round: 3
+tuner/trial_id: 0379
+Score: 592.2835896809896
+
+Trial 0412 summary
+Hyperparameters:
+double_rnn: False
+input_days: 4
+n_units: 128
+learning_rate: 0.01985140846966833
+learning_algorithm: adam
+tuner/epochs: 56
+tuner/initial_epoch: 19
+tuner/bracket: 5
+tuner/round: 3
+tuner/trial_id: 0385
+Score: 597.350830078125
