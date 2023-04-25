@@ -153,6 +153,3 @@ class PollutionEstimator(keras.Sequential):
         return self.evaluate(
             self.dataset_maker.supervised_dataset(data, shift_hours=self.dataset_maker.output_size).batch(batch_size), return_dict=True)
 
-    # def compile(self):
-    #     super().compile(optimizer=keras.optimizers.deserialize(self.optimizer_ser), **self.compilation_kwargs)
-        # super().compile(**self.compilation_kwargs)
