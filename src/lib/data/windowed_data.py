@@ -58,7 +58,7 @@ class WTSMaker:
         measures dataframe.
         """
         # Computing the number of windows in data assuming a window size of self.input_size
-        if isinstance(data, list) or isinstance(data, tuple):
+        if isinstance(data, (list, tuple)):
             return pd.concat([self.continuous_prediction_dates(d) for d in data])
         n_windows = (len(data) - self.input_size) // self.output_size + 1
         start = data.index[0] + pd.Timedelta(self.offset_size, unit="h")
