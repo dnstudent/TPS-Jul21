@@ -92,7 +92,7 @@ def split_dataframe(data, validation_length, start, align_24h=True):
 
 
 def split_as_sklearn(data):
-    if isinstance(data, list) or isinstance(data, tuple):
+    if isinstance(data, (list, tuple)):
         tr = [split_as_sklearn(elem) for elem in data]
         return [elem[0] for elem in tr], [elem[1] for elem in tr]
     return data[features], data[targets]

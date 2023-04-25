@@ -6,7 +6,7 @@ def plot_predictions(data, estimator, **kwargs):
     """Given a climate dataset and a pollution model, plots the predictions of the model on the dataset.
     """
     y_pred = estimator.forecast(data)
-    if isinstance(data, list) or isinstance(data, tuple):
+    if isinstance(data, (list, tuple)):
         y_true = pd.concat(data)[estimator.targets]
     else:
         y_true = data[estimator.targets]
