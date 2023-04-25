@@ -18,7 +18,11 @@ class PollutionNet(keras.Model):
 class DirectRnn(PollutionNet, keras.Sequential):
     """An RNN-based model, where all the rnn layers return sequences as long as the input
     """
-    def __init__(self, n_features, n_targets, rnn_class, n_recursive_units, input_days, output_days, offset_hours=None, n_intermediate_fc_units=[], rnn_kwargs={}, *args, **kwargs):
+    def __init__(self, n_features, n_targets, rnn_class, n_recursive_units, input_days, output_days, offset_hours=None, n_intermediate_fc_units=None, rnn_kwargs=None, *args, **kwargs):
+        if n_intermediate_fc_units is None:
+            n_intermediate_fc_units = []
+        if rnn_kwargs is None:
+            rnn_kwargs = {}
         if offset_hours is None:
             offset_hours = round(input_days * 24)
         super().__init__(n_features, n_targets, input_days, output_days, offset_hours, *args, **kwargs)
