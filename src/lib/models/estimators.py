@@ -11,7 +11,7 @@ class PollutionEstimator(keras.Sequential):
     """
 
     def __init__(self,
-                 features, targets, pollution_model, targets_normalization, compilation_kwargs=None,
+                 features, targets, pollution_model, compilation_kwargs=None,
                  *args, **kwargs):
         """Initializes a pollution model.
 
@@ -28,7 +28,7 @@ class PollutionEstimator(keras.Sequential):
         self.dataset_maker = WTSMaker(
             features, targets, pollution_model.input_days, pollution_model.output_days, pollution_model.offset_hours)
         self.compilation_kwargs = compilation_kwargs
-        self.optimizer_ser = self.compilation_kwargs.pop("optimizer", {"class_name": "sgd", "config": {}})
+        self.optimizer_kwargs = self.compilation_kwargs.pop("optimizer", {"class_name": "adam", "config": {}})
         self.features = features
         self.targets = targets
         self.prediction_shift = self.dataset_maker.output_size
@@ -56,11 +56,8 @@ class PollutionEstimator(keras.Sequential):
         self.build(input_shape=(
             None, self.dataset_maker.input_size, len(features)))
 
-        if targets_normalization:
-            self.targets_normalization = keras.layers.Normalization(
-                axis=-1, name=f"{self.name}_targets_normalization")
-        else:
-            self.targets_normalization = None
+        self.targets_normalization = keras.layers.Normalization(
+            axis=-1, name=f"{self.name}_targets_normalization")
 
     def adapt_training(self, training_data):
         """Adapts the normalization layers to the TRAINING data. One MUST assure that the data is already batched,
@@ -75,9 +72,8 @@ class PollutionEstimator(keras.Sequential):
                 training_data[self.features].to_numpy().reshape((1, -1, len(self.features))))
             self.targets_reconstruction.adapt(
                 training_data[self.targets].to_numpy().reshape((1, -1, len(self.targets))))
-            if self.targets_normalization:
-                self.targets_normalization.adapt(
-                    training_data[self.targets].to_numpy().reshape((1, -1, len(self.targets))))
+            self.targets_normalization.adapt(
+                training_data[self.targets].to_numpy().reshape((1, -1, len(self.targets))))
         else:
             if len(training_data.element_spec[0].shape) != 3 or len(training_data.element_spec[1].shape) != 3:
                 raise ValueError(
@@ -87,9 +83,8 @@ class PollutionEstimator(keras.Sequential):
                 training_data.map(lambda x, _: x))
             self.targets_reconstruction.adapt(
                 training_data.map(lambda _, y: y))
-            if self.targets_normalization:
-                self.targets_normalization.adapt(
-                    training_data.map(lambda _, y: y))
+            self.targets_normalization.adapt(
+                training_data.map(lambda _, y: y))
 
     def trim_to_forecast(self, data):
         """Trims the data to the appropriate size for the model.
@@ -100,7 +95,7 @@ class PollutionEstimator(keras.Sequential):
             return data.iloc[:-rem]
         return data
 
-    def train(self, data: List[pd.DataFrame] | pd.DataFrame, epochs, shift_hours, validation_data=None, batch_size=32, cache_to_disk=True, **kwargs):
+    def train(self, data: List[pd.DataFrame] | pd.DataFrame, epochs, shift_hours, validation_data=None, batch_size=32, cache_to_disk=False, compilation_kws=None, **kwargs):
         """Trains the model on a dataset, assuming the input is in my format.
         """
         def cache_path(train):
@@ -110,13 +105,20 @@ class PollutionEstimator(keras.Sequential):
             if not os.path.exists(".cache"):
                 os.mkdir(".cache")
             return f".cache/{self.name}_{self.dataset_maker.input_size}_{'train' if train else 'validation'}"
+        self.adapt_training(data)
+        if compilation_kws:
+            self.compile(**compilation_kws)
+        else:
+            self.compile(optimizer=keras.optimizers.deserialize(self.optimizer_kwargs), **self.compilation_kwargs)
 
         training_dataset = self.dataset_maker.supervised_dataset(
-            data, shift_hours).cache(cache_path(True)).shuffle(10_000).batch(batch_size)
+            data, shift_hours).map(lambda x, y: (x, self.targets_normalization(y))).cache(cache_path(True)).shuffle(10_000).batch(batch_size)
+
         if validation_data is not None:
             validation_data = self.dataset_maker.supervised_dataset(
-                validation_data, self.dataset_maker.output_size).batch(batch_size).cache(cache_path(False))
-        return super().fit(training_dataset.prefetch(tf.data.AUTOTUNE), validation_data=validation_data.prefetch(tf.data.AUTOTUNE), epochs=epochs, **kwargs)
+                validation_data, self.dataset_maker.output_size).map(lambda x, y: (x, self.targets_normalization(y))).batch(batch_size).cache(cache_path(False)).prefetch(tf.data.AUTOTUNE)
+
+        return super().fit(training_dataset.prefetch(tf.data.AUTOTUNE), validation_data=validation_data, epochs=epochs, **kwargs)
 
     def fit(self, X, y, *args, **kwargs):
         """Trains the model on a dataset, assuming the input is in keras/scikit format.
@@ -152,4 +154,3 @@ class PollutionEstimator(keras.Sequential):
         # Assumes windows are contiguous and non-overlapping
         return self.evaluate(
             self.dataset_maker.supervised_dataset(data, shift_hours=self.dataset_maker.output_size).batch(batch_size), return_dict=True)
-
