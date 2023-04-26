@@ -11,7 +11,7 @@ class PollutionEstimator(keras.Sequential):
     """
 
     def __init__(self,
-                 features, targets, pollution_model, compilation_kwargs=None,
+                 features, targets, pollution_model,
                  *args, **kwargs):
         """Initializes a pollution model.
 
@@ -23,12 +23,12 @@ class PollutionEstimator(keras.Sequential):
             offset_days (int | float): The offset between the beginning of the input and the beginning of the output in days
         """
         super().__init__(*args, **kwargs)
-        if compilation_kwargs is None:
-            compilation_kwargs = {"loss": "mse"}
         self.dataset_maker = WTSMaker(
             features, targets, pollution_model.input_days, pollution_model.output_days, pollution_model.offset_hours)
-        self.compilation_kwargs = compilation_kwargs
-        self.optimizer_kwargs = self.compilation_kwargs.pop("optimizer", {"class_name": "adam", "config": {}})
+        # if compilation_kwargs is None:
+        #     compilation_kwargs = {"loss": "mse"}
+        # self.compilation_kwargs = compilation_kwargs
+        # self.optimizer_kwargs = self.compilation_kwargs.pop("optimizer", {"class_name": "adam", "config": {}})
         self.features = features
         self.targets = targets
         self.prediction_shift = self.dataset_maker.output_size
@@ -95,29 +95,22 @@ class PollutionEstimator(keras.Sequential):
             return data.iloc[:-rem]
         return data
 
-    def train(self, data: List[pd.DataFrame] | pd.DataFrame, epochs, shift_hours, validation_data=None, batch_size=32, cache_to_disk=False, compilation_kws=None, **kwargs):
+    def train(self, data: List[pd.DataFrame] | pd.DataFrame, epochs, shift_hours, validation_data=None, batch_size=32, cache_to_disk=False, **kwargs):
         """Trains the model on a dataset, assuming the input is in my format.
         """
         def cache_path(train):
             if not cache_to_disk:
-                return None
+                return ""
             import os
             if not os.path.exists(".cache"):
                 os.mkdir(".cache")
             return f".cache/{self.name}_{self.dataset_maker.input_size}_{'train' if train else 'validation'}"
-        self.adapt_training(data)
-        if compilation_kws:
-            self.compile(**compilation_kws)
-        else:
-            self.compile(optimizer=keras.optimizers.deserialize(self.optimizer_kwargs), **self.compilation_kwargs)
 
         training_dataset = self.dataset_maker.supervised_dataset(
-            data, shift_hours).map(lambda x, y: (x, self.targets_normalization(y))).cache(cache_path(True)).shuffle(10_000).batch(batch_size)
-
+            data, shift_hours).cache(cache_path(True)).shuffle(10_000).batch(batch_size)
         if validation_data is not None:
             validation_data = self.dataset_maker.supervised_dataset(
-                validation_data, self.dataset_maker.output_size).map(lambda x, y: (x, self.targets_normalization(y))).batch(batch_size).cache(cache_path(False)).prefetch(tf.data.AUTOTUNE)
-
+                validation_data, self.dataset_maker.output_size).batch(batch_size).cache(cache_path(False)).prefetch(tf.data.AUTOTUNE)
         return super().fit(training_dataset.prefetch(tf.data.AUTOTUNE), validation_data=validation_data, epochs=epochs, **kwargs)
 
     def fit(self, X, y, *args, **kwargs):
@@ -138,19 +131,20 @@ class PollutionEstimator(keras.Sequential):
             print(e)
             return super().fit(X, y, *args, **kwargs)
 
-    def forecast(self, data, batch_size=32):
-        """Returns the predictions of the model on a dataset.
+    def forecast(self, data, batch_size=32, **kwargs):
+        """Returns a model's predictions on an input dataset.
         """
         # data = self.trim_to_forecast(data)
         # Assumes output windows are contiguous and non-overlapping
         raw_results = self.predict(
-            self.dataset_maker.input_dataset(data, shift_hours=self.dataset_maker.output_size).batch(batch_size))
+            self.dataset_maker.input_dataset(data, shift_hours=self.dataset_maker.output_size).batch(batch_size), **kwargs)
         dates = self.dataset_maker.continuous_prediction_dates(data)
         return pd.DataFrame(raw_results.reshape((-1, len(self.targets))), index=dates, columns=self.targets).rename_axis(index="date_time")
 
     def assess(self, data, metrics, batch_size=32):
-        """Returns the metrics of the model on a dataset.
+        """Returns the metrics evaluating the performance of a model on a dataset.
         """
         # Assumes windows are contiguous and non-overlapping
+        self.compile(metrics=metrics, loss="mse")
         return self.evaluate(
             self.dataset_maker.supervised_dataset(data, shift_hours=self.dataset_maker.output_size).batch(batch_size), return_dict=True)

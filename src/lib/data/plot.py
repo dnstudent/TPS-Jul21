@@ -11,6 +11,6 @@ def plot_predictions(data, estimator, **kwargs):
     else:
         y_true = data[estimator.targets]
     sns_df = pd.concat([y_true, y_pred], axis=1,
-                       keys=["observed", "predicted"]).melt(var_name=["series", "target"], ignore_index=False)
+                       keys=["Osservazioni", "Predizioni"]).melt(var_name=["Sorgente dati", "Inquinante"], ignore_index=False)
     return sns.relplot(data=sns_df.reset_index(), x="date_time", y="value",
-                       hue="series", row="target", kind="line", errorbar=None, **kwargs)
+                       hue="Sorgente dati", style="Sorgente dati", row="Inquinante", kind="line", errorbar=None, **kwargs)

@@ -5,8 +5,8 @@ import tensorflow as tf
 
 features = ["deg_C", "relative_humidity", "absolute_humidity",
             "sensor_1", "sensor_2", "sensor_3", "sensor_4", "sensor_5"]
-targets = [f"target_{elem}" for elem in [
-    "carbon_monoxide", "benzene", "nitrogen_oxides"]]
+targets = [
+    "carbon_monoxide", "benzene", "nitrogen_oxides"]
 
 
 def manage_pair(func):
@@ -20,7 +20,7 @@ def manage_pair(func):
 def train_data(data_path, delta=False, **kwargs):
     df = pd.read_csv(os.path.join(data_path, "train.csv"),
                      parse_dates=["date_time"],
-                     index_col="date_time", **kwargs)
+                     index_col="date_time", **kwargs).rename(columns={f"target_{elem}": elem for elem in targets})
     if delta:
         df[targets] = df[targets].diff()
     return df.dropna()
@@ -29,7 +29,7 @@ def train_data(data_path, delta=False, **kwargs):
 def test_data(data_path, **kwargs):
     return pd.read_csv(os.path.join(data_path, "test.csv"),
                        parse_dates=["date_time"],
-                       index_col="date_time", **kwargs)
+                       index_col="date_time", **kwargs).rename(columns={f"target_{elem}": elem for elem in targets})
 
 
 def to_dataset(data: pd.DataFrame):
